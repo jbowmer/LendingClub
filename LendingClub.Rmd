@@ -52,17 +52,19 @@ ggplot(data = data, aes(x = loan_amnt, color = bad_loans)) + geom_freqpoly() +
   ggtitle("Loan amount and relationship with bad loans")
 ```
 
+By far the most interesting part of the chart above is the spike in 
+
 We also examine some other variables and the relationship with bad loans. Of particular interest is the chart showing the change in bad loans as grade changes - we would expect this to increase as grade falls, but this seems not to be the case at first glance. This would most likely be an interesting avenue for further investigation.
 
 ```{r}
 ggplot(data = data, aes(x = term,  fill =  bad_loans)) + geom_bar() + 
-  ggtitle("Loan amount and relationship with term")
+  ggtitle("Term of loan and relationship with bad loans")
 
 ggplot(data = data, aes(x = int_rate, fill = bad_loans)) + geom_bar() + 
-  ggtitle("Loan amount and relationship with interest rate") #This chart would be improved with binning into categories.
+  ggtitle("Interest rate and relationship with bad loans") #This chart would be improved with binning into categories.
 
 ggplot(data = data, aes(x = grade, fill = bad_loans)) + geom_bar() + 
-  ggtitle("Loan amount and relationship with loan grade") #Potentially the most interesting chart of the ones presented.
+  ggtitle("Grade of Loan and relationship with bad loans") #Potentially the most interesting chart of the ones presented.
 ```
 
 Finally, we create a simple model and look at its performance on a test set.
