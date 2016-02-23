@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
-<meta name="author" content="JB" />
+<meta name="author" content="Jake Bowmer" />
 
 <meta name="date" content="2016-02-23" />
 
@@ -63,38 +63,23 @@ img {
 
 <div id="header">
 <h1 class="title">LendingClub</h1>
-<h4 class="author"><em>JB</em></h4>
+<h4 class="author"><em>Jake Bowmer</em></h4>
 <h4 class="date"><em>23 February 2016</em></h4>
 </div>
 
 
 <p>This is the R Markdown version of a brief analysis done on the publicly available lending club loan dataset.</p>
-<pre><code>## 
-## Attaching package: 'dplyr'
-## 
-## The following object is masked from 'package:stats':
-## 
-##     filter
-## 
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-## 
-## randomForest 4.6-10
-## Type rfNews() to see new features/changes/bug fixes.
-## 
-## Attaching package: 'randomForest'
-## 
-## The following object is masked from 'package:dplyr':
-## 
-##     combine</code></pre>
+<pre class="r"><code>#library imports and data import:
+library(stringr)
+library(dplyr)
+library(lubridate)
+library(randomForest)
+library(reshape2)
+library(ggplot2)</code></pre>
 <pre><code>## Warning: package 'ggplot2' was built under R version 3.2.3</code></pre>
-<pre><code>## 
-## Attaching package: 'ggplot2'
-## 
-## The following object is masked from 'package:randomForest':
-## 
-##     margin</code></pre>
+<pre class="r"><code>data = read.csv(&quot;/Users/Jake/Projects/LendingClub/LoanStats3a.csv&quot;, header=TRUE, stringsAsFactors=FALSE, skip=1)
+
+head(data)</code></pre>
 <pre><code>##        id member_id loan_amnt funded_amnt funded_amnt_inv       term
 ## 1 1077501   1296599      5000        5000            4975  36 months
 ## 2 1077430   1314167      2500        2500            2500  60 months
@@ -221,7 +206,9 @@ img {
 ## 4         NA       NA               NA     NA          NA           NA
 ## 5         NA       NA               NA     NA          NA           NA
 ## 6         NA       NA               NA     NA          NA           NA</code></pre>
+<pre class="r"><code>dim(data)</code></pre>
 <pre><code>## [1] 42538    74</code></pre>
+<pre class="r"><code>names(data)</code></pre>
 <pre><code>##  [1] &quot;id&quot;                          &quot;member_id&quot;                  
 ##  [3] &quot;loan_amnt&quot;                   &quot;funded_amnt&quot;                
 ##  [5] &quot;funded_amnt_inv&quot;             &quot;term&quot;                       
@@ -259,6 +246,7 @@ img {
 ## [69] &quot;max_bal_bc&quot;                  &quot;all_util&quot;                   
 ## [71] &quot;total_rev_hi_lim&quot;            &quot;inq_fi&quot;                     
 ## [73] &quot;total_cu_tl&quot;                 &quot;inq_last_12m&quot;</code></pre>
+<pre class="r"><code>summary(data)</code></pre>
 <pre><code>##       id              member_id         loan_amnt      funded_amnt   
 ##  Length:42538       Min.   :  70473   Min.   :  500   Min.   :  500  
 ##  Class :character   1st Qu.: 638480   1st Qu.: 5200   1st Qu.: 5000  
@@ -435,6 +423,8 @@ data = select(data, id:last_credit_pull_d)</code></pre>
 bad = c(&quot;Late (31-120 days)&quot;, &quot;Default&quot;, &quot;Charged Off&quot;)
 data$bad_loans = ifelse(data$loan_status %in% bad, 1, ifelse(data$loan_status==&quot;&quot;, NA, 0))
 data$bad_loans = factor(data$bad_loans)</code></pre>
+<div id="analysis" class="section level1">
+<h1>Analysis</h1>
 <p>This results in 5634 bad loans from a total of 42538. We can use this column to investigates potential explanatory variables. We briefly look at, for examples sake, loan amount, term, interest rate and grade and its effect on bad loans. We first look at loan amount and how bad loans vary with the loan amount.</p>
 <pre class="r"><code>ggplot(data = data, aes(x = loan_amnt, fill = bad_loans)) + geom_histogram() + 
   ggtitle (&quot;Loan amount and relationship with bad loans&quot;)</code></pre>
@@ -496,9 +486,10 @@ data_rf_predict = factor(predict(rf, newdata = test))
 table(data_rf_predict, test$bad_loans)</code></pre>
 <pre><code>##                
 ## data_rf_predict    0    1
-##               0 9218 1406
-##               1    6    2</code></pre>
+##               0 9221 1406
+##               1    3    2</code></pre>
 <p>We see that the simple model is not particularly useful. The addition of the fico score makes the problem solvable, but lending club has scrubbed fico data from its public datasets as the addition of fico data causes privacy issues.</p>
+</div>
 
 
 </div>

@@ -2,12 +2,12 @@
 title: "LendingClub"
 author: "Jake Bowmer"
 date: "23 February 2016"
-output: html_document
+output: pdf_document
 ---
 
 This is the R Markdown version of a brief analysis done on the publicly available lending club loan dataset.
 
-```{r, echo = FALSE}
+```{r, message = FALSE}
 #library imports and data import:
 library(stringr)
 library(dplyr)
@@ -26,7 +26,7 @@ summary(data)
 
 From the above, we can see that there are a number of columns consisting almost entirely of NA values. In addition, the description column, while potentially useful from a text mining point of view, is outside the scope of this example. We remove these columns.
 
-```{r}
+```{r, message = FALSE}
 data = subset(data, select = -desc)
 data = select(data, id:last_credit_pull_d)
 ```
@@ -34,14 +34,15 @@ data = select(data, id:last_credit_pull_d)
 A simple model predicting whether a loan turns "bad" or not is a binary classification problem. We need to adjust our dataset to highlight the loans that have gone bad.
 
 
-```{r}
+```{r, message = FALSE}
 #create a binary indicator of whether a loan is considered bad or good.
 bad = c("Late (31-120 days)", "Default", "Charged Off")
 data$bad_loans = ifelse(data$loan_status %in% bad, 1, ifelse(data$loan_status=="", NA, 0))
 data$bad_loans = factor(data$bad_loans)
 ```
 
-This results in 5634 bad loans from a total of 42538. We can use this column to investigates potential explanatory variables. We briefly look at, for examples sake, loan amount, term, interest rate and grade and its effect on bad loans. We first look at loan amount and how bad loans vary with the loan amount.
+#Analysis
+This results in 5634 bad loans from a total of 42538. We can use this column to investigates potential explanatory variables. We briefly look at, for examples sake, loan amount, term, interest rate and grade and effects on loan outcomes. We first look at loan amount and how bad loans vary with the loan amount.
 
 ```{r}
 ggplot(data = data, aes(x = loan_amnt, fill = bad_loans)) + geom_histogram() + 
