@@ -8,7 +8,7 @@ library(ggplot2)
 
 #Import data
 data = read.csv("/Users/Jake/Projects/LendingClub/LoanStats3a.csv", header=TRUE, stringsAsFactors=FALSE, skip=1)
-df = read.csv("/Users/Jake/Projects/LendingClub/LoanStats3a.csv", header=TRUE, stringsAsFactors=FALSE, skip=1)
+
 
 head(data)
 dim(data)

@@ -1,0 +1,93 @@
+---
+title: "LendingClub"
+author: "Jake Bowmer"
+date: "23 February 2016"
+output: html_document
+---
+
+This is the R Markdown version of a brief analysis done on the publicly available lending club loan dataset.
+
+```{r, echo = FALSE}
+#library imports and data import:
+library(stringr)
+library(dplyr)
+library(lubridate)
+library(randomForest)
+library(reshape2)
+library(ggplot2)
+
+data = read.csv("/Users/Jake/Projects/LendingClub/LoanStats3a.csv", header=TRUE, stringsAsFactors=FALSE, skip=1)
+
+head(data)
+dim(data)
+names(data)
+summary(data)
+```
+
+From the above, we can see that there are a number of columns consisting almost entirely of NA values. In addition, the description column, while potentially useful from a text mining point of view, is outside the scope of this example. We remove these columns.
+
+```{r}
+data = subset(data, select = -desc)
+data = select(data, id:last_credit_pull_d)
+```
+
+A simple model predicting whether a loan turns "bad" or not is a binary classification problem. We need to adjust our dataset to highlight the loans that have gone bad.
+
+
+```{r}
+#create a binary indicator of whether a loan is considered bad or good.
+bad = c("Late (31-120 days)", "Default", "Charged Off")
+data$bad_loans = ifelse(data$loan_status %in% bad, 1, ifelse(data$loan_status=="", NA, 0))
+data$bad_loans = factor(data$bad_loans)
+```
+
+This results in 5634 bad loans from a total of 42538. We can use this column to investigates potential explanatory variables. We briefly look at, for examples sake, loan amount, term, interest rate and grade and its effect on bad loans. We first look at loan amount and how bad loans vary with the loan amount.
+
+```{r}
+ggplot(data = data, aes(x = loan_amnt, fill = bad_loans)) + geom_histogram() + 
+  ggtitle ("Loan amount and relationship with bad loans")
+
+ggplot(data = data, aes(x = loan_amnt, color = bad_loans)) + geom_freqpoly() + 
+  ggtitle("Loan amount and relationship with bad loans")
+```
+
+We also examine some other variables and the relationship with bad loans. Of particular interest is the chart showing the change in bad loans as grade changes - we would expect this to increase as grade falls, but this seems not to be the case at first glance. This would most likely be an interesting avenue for further investigation.
+
+```{r}
+ggplot(data = data, aes(x = term,  fill =  bad_loans)) + geom_bar() + 
+  ggtitle("Loan amount and relationship with term")
+
+ggplot(data = data, aes(x = int_rate, fill = bad_loans)) + geom_bar() + 
+  ggtitle("Loan amount and relationship with interest rate") #This chart would be improved with binning into categories.
+
+ggplot(data = data, aes(x = grade, fill = bad_loans)) + geom_bar() + 
+  ggtitle("Loan amount and relationship with loan grade") #Potentially the most interesting chart of the ones presented.
+```
+
+Finally, we create a simple model and look at its performance on a test set.
+
+``` {r}
+data$renter = ifelse(data$home_ownership == 'RENT', 1, 0)
+data_rf = select(data, loan_amnt, term, grade, renter, annual_inc, bad_loans)
+summary(data_rf)
+
+data_rf$grade = factor(data_rf$grade)
+data_rf$term = factor(data_rf$term)
+data_rf = na.omit(data_rf)
+
+library(caret)
+split = createDataPartition(data_rf$bad_loans, p=0.75, list = FALSE)
+training = data_rf[split,]
+test = data_rf[-split,]
+
+#train model on training set
+rf = randomForest(as.factor(bad_loans) ~ loan_amnt + term + grade + renter + annual_inc,
+                  type="classification", data=training, importance=TRUE, na.action=na.omit)
+#Predict on test set
+data_rf_predict = factor(predict(rf, newdata = test))
+
+#We can see that our model is not yet very useful:
+table(data_rf_predict, test$bad_loans)
+```
+
+We see that the simple model is not particularly useful. The addition of the fico score makes the problem solvable, but lending club has scrubbed fico data from its public datasets as the addition of fico data causes privacy issues.
